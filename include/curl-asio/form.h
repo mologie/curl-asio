@@ -1,3 +1,10 @@
+/*
+	curl-asio: wrapper for integrating libcurl with boost.asio applications
+	Copyright (c) 2013 Oliver Kuckertz <oliver.kuckertz@mologie.de>
+	See COPYING for license information.
+
+	C++ wrapper for constructing libcurl forms
+*/
 
 #pragma once
 
