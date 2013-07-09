@@ -11,11 +11,12 @@
 #include <boost/enable_shared_from_this.hpp>
 #include <boost/noncopyable.hpp>
 #include <string>
-#include <curl-asio/native.h>
+#include "config.h"
+#include "native.h"
 
 namespace curl
 {
-	class string_list:
+	class CURLASIO_API string_list:
 		public boost::enable_shared_from_this<string_list>,
 		public boost::noncopyable
 	{

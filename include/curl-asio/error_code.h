@@ -9,6 +9,7 @@
 #pragma once
 
 #include <boost/system/error_code.hpp>
+#include "config.h"
 #include "native.h"
 
 namespace curl

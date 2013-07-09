@@ -11,11 +11,12 @@
 #include <boost/enable_shared_from_this.hpp>
 #include <boost/noncopyable.hpp>
 #include <string>
+#include "config.h"
 #include "native.h"
 
 namespace curl
 {
-	class form:
+	class CURLASIO_API form:
 		public boost::enable_shared_from_this<form>,
 		public boost::noncopyable
 	{

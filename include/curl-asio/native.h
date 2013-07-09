@@ -3,7 +3,7 @@
 	Copyright (c) 2013 Oliver Kuckertz <oliver.kuckertz@mologie.de>
 	See COPYING for license information.
 
-	Native libcurl function
+	Native libcurl API
 */
 
 #pragma once

@@ -12,14 +12,15 @@
 #include <boost/function.hpp>
 #include <boost/noncopyable.hpp>
 #include <boost/shared_ptr.hpp>
-#include <curl-asio/native.h>
 #include <map>
+#include "config.h"
+#include "native.h"
 
 namespace curl
 {
 	class easy;
 
-	class multi:
+	class CURLASIO_API multi:
 		public boost::noncopyable
 	{
 	public:
