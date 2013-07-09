@@ -1,3 +1,10 @@
+/**
+	curl-asio: wrapper for integrating libcurl with boost.asio applications
+	Copyright (c) 2013 Oliver Kuckertz <oliver.kuckertz@mologie.de>
+	See COPYING for license information.
+
+	Integration of libcurl's multi interface with Boost.Asio
+*/
 
 #include <boost/bind.hpp>
 #include <curl-asio/easy.h>

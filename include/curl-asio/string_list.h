@@ -1,9 +1,9 @@
-/*
+/**
 	curl-asio: wrapper for integrating libcurl with boost.asio applications
 	Copyright (c) 2013 Oliver Kuckertz <oliver.kuckertz@mologie.de>
 	See COPYING for license information.
 
-	Construct libcurl string lists
+	Constructs libcurl string lists
 */
 
 #pragma once
