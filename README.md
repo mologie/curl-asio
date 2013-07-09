@@ -1,7 +1,7 @@
 curl-asio
 =========
 
-**Warning: Here be dragons. This library is still being developed and has not been extensively tested. **
+**Warning: Here be dragons. This library is still being developed and has not been extensively tested.**
 
 This library makes use of libcurl's multi interface in order to enable easy integration into Boost.Asio applications.
 
@@ -11,16 +11,15 @@ This library makes use of libcurl's multi interface in order to enable easy inte
 * **useful wrappers** - C++ interfaces for libcurl's easy, multi, form, share and string list containers. All setopt calls are wrapped for type safety.
 * **source/sink concept** - Works nicely with Boost.Iostreams
 
-# Installation
-
+Installation
+------------
 1. If not already done, install cURL and its header files
 2. Clone this git repository. There are no tags or packages yet.
 3. Run CMake and point it to cURL
 4. `make && make install`
 
-
-# Examples
-
+Examples
+--------
 Examples can be found in the wiki on the left and in the examples/ directory. Here is how a simple, blocking file download looks like:
 
 ```c++
@@ -63,7 +62,6 @@ int main(int argc, char* argv[])
 }
 ```
 
-
-# License
-
+License
+-------
 Curl-asio is licensed under the same MIT/X derivate license used by libcurl.
