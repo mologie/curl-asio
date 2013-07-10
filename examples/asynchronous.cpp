@@ -32,7 +32,7 @@ void start_download(curl::multi& multi, const std::string& url)
 	std::string file_name = url.substr(url.find_last_of('/') + 1);
 	
 	easy->set_url(url);
-	easy->set_sink(boost::make_shared<std::ofstream>(file_name));
+	easy->set_sink(boost::make_shared<std::ofstream>(file_name, std::ios::binary));
 	easy->async_perform(boost::bind(handle_download_completed, boost::asio::placeholders::error, url, easy.get()));
 	
 	active_downloads.insert(easy);
