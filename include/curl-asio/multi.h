@@ -22,7 +22,6 @@
 namespace curl
 {
 	class easy;
-	struct socket_info;
 
 	class CURLASIO_API multi:
 		public boost::noncopyable
