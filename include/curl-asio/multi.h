@@ -11,31 +11,41 @@
 #include <boost/asio.hpp>
 #include <boost/function.hpp>
 #include <boost/noncopyable.hpp>
+#include <boost/ptr_container/ptr_map.hpp>
 #include <boost/shared_ptr.hpp>
-#include <map>
+#include <memory>
+#include <set>
 #include "config.h"
 #include "native.h"
+#include "socket_info.h"
 
 namespace curl
 {
 	class easy;
+	struct socket_info;
 
 	class CURLASIO_API multi:
 		public boost::noncopyable
 	{
 	public:
-		typedef boost::function<void(boost::system::error_code& err)> handler_type;
-		typedef std::map<easy*, handler_type> easy_map_type;
-		typedef boost::asio::ip::tcp::socket socket_type;
-
 		multi(boost::asio::io_service& io_service);
 		~multi();
 
 		inline boost::asio::io_service& get_io_service() { return io_service_; }
 		inline native::CURLM* native_handle() { return handle_; }
 
-		void add(easy* easy_handle, handler_type handler);
+		void add(easy* easy_handle);
 		void remove(easy* easy_handle);
+
+		void socket_register(std::auto_ptr<socket_info> si);
+		void socket_cleanup(native::curl_socket_t s);
+
+	private:
+		void add_handle(native::CURL* native_easy);
+		void remove_handle(native::CURL* native_easy);
+
+		void assign(native::curl_socket_t sockfd, void* user_data);
+		void socket_action(native::curl_socket_t s, int event_bitmask);
 
 		typedef int (*socket_function_t)(native::CURL* native_easy, native::curl_socket_t s, int what, void* userp, void* socketp);
 		void set_socket_function(socket_function_t socket_function);
@@ -45,22 +55,29 @@ namespace curl
 		void set_timer_function(timer_function_t timer_function);
 		void set_timer_data(void* timer_data);
 
-	private:
-		void monitor_socket(socket_type* sd, int action);
-		void process_messages();
+		void monitor_socket(socket_info* si, int action);
+		bool process_messages(easy* context = 0);
 		bool still_running();
-		handler_type get_handler(easy* easy_handle);
 
-		void handle_socket_read(const boost::system::error_code& err, socket_type* sd);
-		void handle_socket_write(const boost::system::error_code& err, socket_type* sd);
+		void start_read_op(socket_info* si);
+		void handle_socket_read(const boost::system::error_code& err, socket_info* si);
+		void start_write_op(socket_info* si);
+		void handle_socket_write(const boost::system::error_code& err, socket_info* si);
 		void handle_timeout(const boost::system::error_code& err);
+
+		typedef boost::asio::ip::tcp::socket socket_type;
+		typedef boost::ptr_map<socket_type::native_handle_type, socket_info> socket_map_type;
+		socket_map_type sockets_;
+		socket_info* get_socket_from_native(native::curl_socket_t native_socket);
 
 		static int socket(native::CURL* native_easy, native::curl_socket_t s, int what, void* userp, void* socketp);
 		static int timer(native::CURLM* native_multi, long timeout_ms, void* userp);
 
+		typedef std::set<easy*> easy_set_type;
+
 		boost::asio::io_service& io_service_;
 		native::CURLM* handle_;
-		easy_map_type easy_handles_;
+		easy_set_type easy_handles_;
 		boost::asio::deadline_timer timeout_;
 		int still_running_;
 	};

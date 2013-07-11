@@ -41,12 +41,7 @@ easy::easy(multi& multi_handle):
 
 easy::~easy()
 {
-	// ensure to cancel all async. transfers when this object is destroyed
-	if (multi_registered_)
-	{
-		multi_->remove(this);
-		multi_registered_ = false;
-	}
+	cancel();
 
 	if (handle_)
 	{
@@ -74,16 +69,22 @@ void easy::async_perform(handler_type handler)
 		throw std::runtime_error("attempt to perform async. operation without assigning a multi object");
 	}
 
+	// Cancel all previous async. operations
 	cancel();
-	multi_->add(this, handler_wrapper(this, handler));
-	multi_registered_ = true;
-}
 
-void easy::async_perform(multi& multi_handle, handler_type handler)
-{
-	cancel();
-	multi_ = &multi_handle;
-	multi_->add(this, handler_wrapper(this, handler));
+	// Keep track of all new sockets
+	set_opensocket_function(&easy::opensocket);
+	set_opensocket_data(this);
+
+	// This one is tricky: Although sockets are opened in the context of an easy object,
+	// they can outlive the easy objects and be transferred into a multi object's connection pool.
+	// Why there is no connection pool interface in the multi interface to plug into to begin with is still a mystery to me.
+	// Either way, the close events have to be tracked by the multi object as sockets are usually closed when curl_multi_cleanup is invoked.
+	set_closesocket_function(&easy::closesocket);
+	set_closesocket_data(multi_);
+
+	handler_ = handler;
+	multi_->add(this);
 	multi_registered_ = true;
 }
 
@@ -91,6 +92,7 @@ void easy::cancel()
 {
 	if (multi_registered_)
 	{
+		handle_completion(boost::system::error_code(boost::asio::error::operation_aborted));
 		multi_->remove(this);
 		multi_registered_ = false;
 	}
@@ -124,20 +126,6 @@ void easy::set_sink(boost::shared_ptr<std::ostream> sink, boost::system::error_c
 	sink_ = sink;
 	set_write_function(&easy::write_function);
 	if (!ec) set_write_data(this);
-}
-
-easy::socket_type* easy::get_socket_from_native(native::curl_socket_t native_socket)
-{
-	socket_map_type::iterator it = sockets_.find(native_socket);
-
-	if (it != sockets_.end())
-	{
-		return it->second;
-	}
-	else
-	{
-		return 0;
-	}
 }
 
 void easy::set_post_fields(const std::string& post_fields)
@@ -458,6 +446,12 @@ void easy::set_telnet_options(boost::shared_ptr<string_list> telnet_options, boo
 	}
 }
 
+void easy::handle_completion(const boost::system::error_code& err)
+{
+	multi_registered_ = false;
+	handler_(err);
+}
+
 void easy::init()
 {
 	handle_ = native::curl_easy_init();
@@ -468,10 +462,38 @@ void easy::init()
 	}
 
 	set_private(this);
-	set_opensocket_function(&easy::opensocket);
-	set_opensocket_data(this);
-	set_closesocket_function(&easy::closesocket);
-	set_closesocket_data(this);
+}
+
+native::curl_socket_t easy::open_tcp_socket(native::curl_sockaddr* address)
+{
+	boost::system::error_code ec;
+	std::auto_ptr<socket_type> socket(new socket_type(io_service_));
+
+	switch (address->family)
+	{
+	case AF_INET:
+		socket->open(boost::asio::ip::tcp::v4(), ec);
+		break;
+
+	case AF_INET6:
+		socket->open(boost::asio::ip::tcp::v6(), ec);
+		break;
+
+	default:
+		return CURL_SOCKET_BAD;
+	}
+
+	if (ec)
+	{
+		return CURL_SOCKET_BAD;
+	}
+	else
+	{
+		std::auto_ptr<socket_info> si(new socket_info(this, socket));
+		native::curl_socket_t fd = si->socket->native_handle();
+		multi_->socket_register(si);
+		return fd;
+	}
 }
 
 size_t easy::write_function(char* ptr, size_t size, size_t nmemb, void* userdata)
@@ -559,47 +581,38 @@ native::curl_socket_t easy::opensocket(void* clientp, native::curlsocktype purpo
 {
 	easy* self = static_cast<easy*>(clientp);
 
-	if (purpose == native::CURLSOCKTYPE_IPCXN)
+	switch (purpose)
 	{
-		boost::system::error_code ec;
-		std::auto_ptr<socket_type> socket(new socket_type(self->io_service_));
-
-		switch (address->family)
+	case native::CURLSOCKTYPE_IPCXN:
+		switch (address->socktype)
 		{
-		case AF_INET:
-			socket->open(boost::asio::ip::tcp::v4(), ec);
-			break;
+		case SOCK_STREAM:
+			// Note to self: Why is address->protocol always set to zero?
+			return self->open_tcp_socket(address);
 
-		case AF_INET6:
-			socket->open(boost::asio::ip::tcp::v6(), ec);
-			break;
-		}
+		case SOCK_DGRAM:
+			// TODO implement - I've seen other libcurl wrappers with UDP implementation, but have yet to read up on what this is used for
+			return CURL_SOCKET_BAD;
 
-		if (ec)
-		{
+		default:
+			// unknown or invalid socket type
 			return CURL_SOCKET_BAD;
 		}
-		else
-		{
-			socket_type::native_handle_type fd = socket->native_handle();
-			self->sockets_.insert(fd, socket);
-			return fd;
-		}
-	}
+		break;
 
-	return CURL_SOCKET_BAD;
+	case native::CURLSOCKTYPE_ACCEPT:
+		// TODO implement - is this used for active FTP?
+		return CURL_SOCKET_BAD;
+
+	default:
+		// unknown or invalid purpose
+		return CURL_SOCKET_BAD;
+	}
 }
 
 int easy::closesocket(void* clientp, native::curl_socket_t item)
 {
-	easy* self = static_cast<easy*>(clientp);
-
-	socket_map_type::iterator it = self->sockets_.find(item);
-
-	if (it != self->sockets_.end())
-	{
-		self->sockets_.erase(it);
-	}
-
+	multi* multi_handle = static_cast<multi*>(clientp);
+	multi_handle->socket_cleanup(item);
 	return 0;
 }

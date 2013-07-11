@@ -13,9 +13,9 @@
 #include <boost/function.hpp>
 #include <boost/noncopyable.hpp>
 #include <boost/preprocessor/stringize.hpp>
-#include <boost/ptr_container/ptr_map.hpp>
 #include <boost/shared_ptr.hpp>
 #include <iostream>
+#include <memory>
 #include <string>
 #include "config.h"
 #include "error_code.h"
@@ -89,8 +89,7 @@ namespace curl
 		public boost::noncopyable
 	{
 	public:
-		typedef boost::asio::ip::tcp::socket socket_type;
-		typedef boost::function<void(boost::system::error_code& err)> handler_type;
+		typedef boost::function<void(const boost::system::error_code& err)> handler_type;
 
 		static easy* from_native(native::CURL* native_easy);
 
@@ -103,13 +102,11 @@ namespace curl
 		void perform();
 		void perform(boost::system::error_code& ec);
 		void async_perform(handler_type handler);
-		void async_perform(multi& multi_handle, handler_type handler);
 		void cancel();
 		void set_source(boost::shared_ptr<std::istream> source);
 		void set_source(boost::shared_ptr<std::istream> source, boost::system::error_code& ec);
 		void set_sink(boost::shared_ptr<std::ostream> sink);
 		void set_sink(boost::shared_ptr<std::ostream> sink, boost::system::error_code& ec);
-		socket_type* get_socket_from_native(native::curl_socket_t native_socket);
 
 		// behavior options
 
@@ -431,29 +428,11 @@ namespace curl
 			return (this < &other);
 		}
 
+		void handle_completion(const boost::system::error_code& err);
+
 	private:
-		typedef boost::ptr_map<socket_type::native_handle_type, socket_type> socket_map_type;
-		
-		struct handler_wrapper
-		{
-			handler_wrapper(easy* self, handler_type handler):
-				self_(self),
-				handler_(handler)
-			{
-			}
-
-			void operator()(boost::system::error_code& err)
-			{
-				self_->multi_registered_ = false;
-				self_->io_service_.post(boost::bind(handler_, err));
-			}
-
-		private:
-			easy* self_;
-			handler_type handler_;
-		};
-
 		void init();
+		native::curl_socket_t open_tcp_socket(native::curl_sockaddr* address);
 
 		static size_t write_function(char* ptr, size_t size, size_t nmemb, void* userdata);
 		static size_t read_function(void* ptr, size_t size, size_t nmemb, void* userdata);
@@ -466,7 +445,6 @@ namespace curl
 		multi* multi_;
 		bool multi_registered_;
 		handler_type handler_;
-		socket_map_type sockets_;
 		boost::shared_ptr<std::istream> source_;
 		boost::shared_ptr<std::ostream> sink_;
 		std::string post_fields_;
