@@ -18,9 +18,8 @@ Installation
 3. Run CMake and point it to cURL
 4. `make && make install`
 
-Examples
---------
-Examples can be found in the wiki on the left and in the examples/ directory. Here is how a simple, blocking file download looks like:
+Example
+-------
 
 ```c++
 #include <boost/asio.hpp>
@@ -61,6 +60,8 @@ int main(int argc, char* argv[])
 	return 0;
 }
 ```
+
+More examples, including one for curl-asio's [asynchronous interface](https://github.com/mologie/curl-asio/wiki/Asynchronous-interface), can be found in the [wiki](https://github.com/mologie/curl-asio/wiki) and the `examples` directory.
 
 License
 -------
