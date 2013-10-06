@@ -4,20 +4,22 @@
 # Copyright (c) 2013 Oliver Kuckertz <oliver.kuckertz@mologie.de>
 # See COPYING for license information.
 
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../include")
-include_directories(${Boost_INCLUDE_DIRS})
-include_directories(${CURL_INCLUDE_DIRS})
+INCLUDE_DIRECTORIES(
+	${CURLASIO_INCLUDE_DIR}
+	${CURL_INCLUDE_DIR}
+	${Boost_INCLUDE_DIRS}
+	)
 
-macro(add_example EXAMPLE_NAME)
-	set(EXAMPLE_PROJECT_NAME "${EXAMPLE_NAME}_example")
-	set(EXAMPLE_SOURCE_FILES "${EXAMPLE_NAME}.cpp")
-	add_executable(${EXAMPLE_PROJECT_NAME} ${EXAMPLE_SOURCE_FILES})
-	link_directories(${Boost_LIBRARY_DIR})
-	target_link_libraries(${EXAMPLE_PROJECT_NAME} libcurlasio ${Boost_LIBRARIES})
-	if(CURLASIO_STATICLIB)
-		target_link_libraries(${EXAMPLE_PROJECT_NAME} ${CURL_LIBRARIES})
-	endif()
+macro(ADD_EXAMPLE EXAMPLE_NAME)
+	SET(EXAMPLE_PROJECT_NAME "${EXAMPLE_NAME}_example")
+	SET(EXAMPLE_SOURCE_FILES "${EXAMPLE_NAME}.cpp")
+	ADD_EXECUTABLE(${EXAMPLE_PROJECT_NAME} ${EXAMPLE_SOURCE_FILES})
+	LINK_DIRECTORIES(${Boost_LIBRARY_DIR})
+	TARGET_LINK_LIBRARIES(${EXAMPLE_PROJECT_NAME} ${EXAMPLE_LINK_TARGET} ${Boost_LIBRARIES})
+	IF(CURLASIO_STATICLIB)
+		TARGET_LINK_LIBRARIES(${EXAMPLE_PROJECT_NAME} ${CURL_LIBRARIES})
+	ENDIF()
 endmacro()
 
-add_example("asynchronous")
-add_example("synchronous")
+ADD_EXAMPLE(asynchronous)
+ADD_EXAMPLE(synchronous)
