@@ -547,27 +547,27 @@ int easy::seek_function(void* instream, native::curl_off_t offset, int origin)
 
 	easy* self = static_cast<easy*>(instream);
 
-	std::ios::seek_dir way;
+	std::ios::seekdir dir;
 
 	switch (origin)
 	{
 	case SEEK_SET:
-		way = std::ios::beg;
+		dir = std::ios::beg;
 		break;
 
 	case SEEK_CUR:
-		way = std::ios::cur;
+		dir = std::ios::cur;
 		break;
 
 	case SEEK_END:
-		way = std::ios::end;
+		dir = std::ios::end;
 		break;
 
 	default:
 		return CURL_SEEKFUNC_FAIL;
 	}
 
-	if (!self->source_->seekg(offset, way))
+	if (!self->source_->seekg(offset, dir))
 	{
 		return CURL_SEEKFUNC_FAIL;
 	}

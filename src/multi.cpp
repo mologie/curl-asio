@@ -155,7 +155,7 @@ void multi::monitor_socket(socket_info* si, int action)
 	// Therefore, this code section is only enabled when explicitly targeting Windows Vista and up or a non-Windows platform.
 	// On Windows XP and previous versions, the I/O handler will be executed and immediately return.
 #if !defined(BOOST_WINDOWS_API) || (defined(_WIN32_WINNT) && (_WIN32_WINNT >= 0x0600))
-	if (!action && (pending_read_op_ || pending_write_op_))
+	if (!action && (si->pending_read_op || si->pending_write_op))
 	{
 		si->socket->cancel();
 	}
@@ -168,7 +168,7 @@ bool multi::process_messages(easy* context)
 	int msgs_left;
 	bool transfer_alive = true;
 
-	while (msg = native::curl_multi_info_read(handle_, &msgs_left))
+	while ((msg = native::curl_multi_info_read(handle_, &msgs_left)))
 	{
 		if (msg->msg == native::CURLMSG_DONE)
 		{
