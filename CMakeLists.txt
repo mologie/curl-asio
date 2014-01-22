@@ -23,9 +23,9 @@ SET(CURLASIO_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
 
 # Prefer the shared interface over the static for building examples
 IF(BUILD_SHARED)
-	SET(EXAMPLE_LINK_TARGET libcurlasio)
+	SET(EXAMPLE_LINK_TARGET curlasio-shared)
 ELSE()
-	SET(EXAMPLE_LINK_TARGET curlasio)
+	SET(EXAMPLE_LINK_TARGET curlasio-static)
 ENDIF()
 
 IF(MSVC)
