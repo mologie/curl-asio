@@ -489,10 +489,9 @@ native::curl_socket_t easy::open_tcp_socket(native::curl_sockaddr* address)
 	}
 	else
 	{
-		std::auto_ptr<socket_info> si(new socket_info(this, socket));
-		native::curl_socket_t fd = si->socket->native_handle();
+		boost::shared_ptr<socket_info> si(new socket_info(this, socket));
 		multi_->socket_register(si);
-		return fd;
+		return si->socket->native_handle();
 	}
 }
 

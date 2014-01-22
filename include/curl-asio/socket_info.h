@@ -7,6 +7,7 @@
 #pragma once
 
 #include <boost/asio.hpp>
+#include <boost/enable_shared_from_this.hpp>
 #include <boost/scoped_ptr.hpp>
 #include <memory>
 
@@ -16,7 +17,7 @@ namespace curl
 
 	class easy;
 
-	struct socket_info
+	struct socket_info : public boost::enable_shared_from_this<socket_info>
 	{
 		socket_info(easy* _handle, std::auto_ptr<socket_type> _socket):
 			handle(_handle),
@@ -27,12 +28,12 @@ namespace curl
 			monitor_write(false)
 		{
 		}
-
+		
+		easy* handle;
+		boost::scoped_ptr<socket_type> socket;
 		bool pending_read_op;
 		bool pending_write_op;
 		bool monitor_read;
 		bool monitor_write;
-		easy* handle;
-		boost::scoped_ptr<socket_type> socket;
 	};
 }

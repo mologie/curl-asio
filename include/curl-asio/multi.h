@@ -11,7 +11,6 @@
 #include <boost/asio.hpp>
 #include <boost/function.hpp>
 #include <boost/noncopyable.hpp>
-#include <boost/ptr_container/ptr_map.hpp>
 #include <boost/shared_ptr.hpp>
 #include <memory>
 #include <set>
@@ -36,10 +35,12 @@ namespace curl
 		void add(easy* easy_handle);
 		void remove(easy* easy_handle);
 
-		void socket_register(std::auto_ptr<socket_info> si);
+		void socket_register(boost::shared_ptr<socket_info> si);
 		void socket_cleanup(native::curl_socket_t s);
 
 	private:
+		typedef boost::shared_ptr<socket_info> socket_info_ptr;
+
 		void add_handle(native::CURL* native_easy);
 		void remove_handle(native::CURL* native_easy);
 
@@ -54,20 +55,20 @@ namespace curl
 		void set_timer_function(timer_function_t timer_function);
 		void set_timer_data(void* timer_data);
 
-		void monitor_socket(socket_info* si, int action);
+		void monitor_socket(socket_info_ptr si, int action);
 		bool process_messages(easy* context = 0);
 		bool still_running();
 
-		void start_read_op(socket_info* si);
-		void handle_socket_read(const boost::system::error_code& err, socket_info* si);
-		void start_write_op(socket_info* si);
-		void handle_socket_write(const boost::system::error_code& err, socket_info* si);
+		void start_read_op(socket_info_ptr si);
+		void handle_socket_read(const boost::system::error_code& err, socket_info_ptr si);
+		void start_write_op(socket_info_ptr si);
+		void handle_socket_write(const boost::system::error_code& err, socket_info_ptr si);
 		void handle_timeout(const boost::system::error_code& err);
 
 		typedef boost::asio::ip::tcp::socket socket_type;
-		typedef boost::ptr_map<socket_type::native_handle_type, socket_info> socket_map_type;
+		typedef std::map<socket_type::native_handle_type, socket_info_ptr> socket_map_type;
 		socket_map_type sockets_;
-		socket_info* get_socket_from_native(native::curl_socket_t native_socket);
+		socket_info_ptr get_socket_from_native(native::curl_socket_t native_socket);
 
 		static int socket(native::CURL* native_easy, native::curl_socket_t s, int what, void* userp, void* socketp);
 		static int timer(native::CURLM* native_multi, long timeout_ms, void* userp);

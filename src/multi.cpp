@@ -65,10 +65,10 @@ void multi::remove(easy* easy_handle)
 	}
 }
 
-void multi::socket_register(std::auto_ptr<socket_info> si)
+void multi::socket_register(boost::shared_ptr<socket_info> si)
 {
 	socket_type::native_handle_type fd = si->socket->native_handle();
-	sockets_.insert(fd, si);
+	sockets_.insert(socket_map_type::value_type(fd, si));
 }
 
 void multi::socket_cleanup(native::curl_socket_t s)
@@ -77,6 +77,8 @@ void multi::socket_cleanup(native::curl_socket_t s)
 
 	if (it != sockets_.end())
 	{
+		monitor_socket(it->second, CURL_POLL_NONE);
+		assign(s, nullptr);
 		sockets_.erase(it);
 	}
 }
@@ -134,12 +136,11 @@ void multi::set_timer_data(void* timer_data)
 	boost::asio::detail::throw_error(ec, "set_timer_data");
 }
 
-void multi::monitor_socket(socket_info* si, int action)
+void multi::monitor_socket(socket_info_ptr si, int action)
 {
 	si->monitor_read = !!(action & CURL_POLL_IN);
 	si->monitor_write = !!(action & CURL_POLL_OUT);
 
-	// FIXME this whole socket info struct story smells bad, create separate class which handles all the networking
 	if (si->monitor_read && !si->pending_read_op)
 	{
 		start_read_op(si);
@@ -155,7 +156,7 @@ void multi::monitor_socket(socket_info* si, int action)
 	// Therefore, this code section is only enabled when explicitly targeting Windows Vista and up or a non-Windows platform.
 	// On Windows XP and previous versions, the I/O handler will be executed and immediately return.
 #if !defined(BOOST_WINDOWS_API) || (defined(_WIN32_WINNT) && (_WIN32_WINNT >= 0x0600))
-	if (!action && (si->pending_read_op || si->pending_write_op))
+	if (action == CURL_POLL_NONE && (si->pending_read_op || si->pending_write_op))
 	{
 		si->socket->cancel();
 	}
@@ -198,13 +199,13 @@ bool multi::still_running()
 	return (still_running_ > 0);
 }
 
-void multi::start_read_op(socket_info* si)
+void multi::start_read_op(socket_info_ptr si)
 {
 	si->pending_read_op = true;
 	si->socket->async_read_some(boost::asio::null_buffers(), boost::bind(&multi::handle_socket_read, this, boost::asio::placeholders::error, si));
 }
 
-void multi::handle_socket_read(const boost::system::error_code& err, socket_info* si)
+void multi::handle_socket_read(const boost::system::error_code& err, socket_info_ptr si)
 {
 	si->pending_read_op = false;
 
@@ -229,13 +230,13 @@ void multi::handle_socket_read(const boost::system::error_code& err, socket_info
 	}
 }
 
-void multi::start_write_op(socket_info* si)
+void multi::start_write_op(socket_info_ptr si)
 {
 	si->pending_write_op = true;
 	si->socket->async_write_some(boost::asio::null_buffers(), boost::bind(&multi::handle_socket_write, this, boost::asio::placeholders::error, si));
 }
 
-void multi::handle_socket_write(const boost::system::error_code& err, socket_info* si)
+void multi::handle_socket_write(const boost::system::error_code& err, socket_info_ptr si)
 {
 	si->pending_write_op = false;
 
@@ -269,7 +270,7 @@ void multi::handle_timeout(const boost::system::error_code& err)
 	}
 }
 
-socket_info* multi::get_socket_from_native(native::curl_socket_t native_socket)
+multi::socket_info_ptr multi::get_socket_from_native(native::curl_socket_t native_socket)
 {
 	socket_map_type::iterator it = sockets_.find(native_socket);
 
@@ -289,14 +290,16 @@ int multi::socket(native::CURL* native_easy, native::curl_socket_t s, int what, 
 
 	if (what == CURL_POLL_REMOVE)
 	{
-		// stop listening for events
-		socket_info* si = static_cast<socket_info*>(socketp);
-		self->monitor_socket(si, 0);
+		// stop listening for events if the socket still exists
+		if (socketp) {
+			socket_info_ptr si = static_cast<socket_info*>(socketp)->shared_from_this();
+			self->monitor_socket(si, 0);
+		}
 	}
 	else if (socketp)
 	{
 		// change direction
-		socket_info* si = static_cast<socket_info*>(socketp);
+		socket_info_ptr si = static_cast<socket_info*>(socketp)->shared_from_this();
 		si->handle = easy::from_native(native_easy);
 		self->monitor_socket(si, what);
 	}
@@ -304,7 +307,7 @@ int multi::socket(native::CURL* native_easy, native::curl_socket_t s, int what, 
 	{
 		// FIXME This lookup is expensive and redundant, but there so far is no way around it.
 		// Prepare a patch for libcurl to allow passing the si pointer back into the user data slot from within the createsocket() callback.
-		socket_info* si = self->get_socket_from_native(s);
+		socket_info_ptr si = self->get_socket_from_native(s);
 
 		if (!si)
 		{
@@ -316,7 +319,7 @@ int multi::socket(native::CURL* native_easy, native::curl_socket_t s, int what, 
 		si->handle = easy::from_native(native_easy);
 
 		// cache the result and have further calls include a non-zero socketp argument
-		self->assign(s, si);
+		self->assign(s, si.get());
 
 		// start listening for events on the freshly created socket
 		self->monitor_socket(si, what);
