@@ -43,6 +43,7 @@ ENDIF()
 
 # Build the static library
 IF(BUILD_STATIC)
+	ADD_DEFINITIONS(-DCURLASIO_STATIC)
 	ADD_LIBRARY(
 		curlasio-static
 		STATIC

@@ -1,8 +1,7 @@
-#include <boost/asio.hpp>
+#include <curl-asio.h>
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/ptr_container/ptr_set.hpp>
-#include <curl-asio.h>
 #include <iostream>
 #include <fstream>
 #include <memory> // for std::auto_ptr

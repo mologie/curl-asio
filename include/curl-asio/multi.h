@@ -8,13 +8,13 @@
 
 #pragma once
 
+#include "config.h"
 #include <boost/asio.hpp>
 #include <boost/function.hpp>
 #include <boost/noncopyable.hpp>
 #include <boost/shared_ptr.hpp>
 #include <memory>
 #include <set>
-#include "config.h"
 #include "native.h"
 #include "socket_info.h"
 

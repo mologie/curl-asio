@@ -8,10 +8,10 @@
 
 #pragma once
 
+#include "config.h"
 #include <boost/enable_shared_from_this.hpp>
 #include <boost/noncopyable.hpp>
 #include <boost/thread/mutex.hpp>
-#include "config.h"
 #include "native.h"
 
 namespace curl

@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "config.h"
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
 #include <boost/function.hpp>
@@ -17,7 +18,6 @@
 #include <iostream>
 #include <memory>
 #include <string>
-#include "config.h"
 #include "error_code.h"
 
 #define IMPLEMENT_CURL_OPTION(FUNCTION_NAME, OPTION_NAME, OPTION_TYPE) \

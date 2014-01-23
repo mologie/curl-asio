@@ -12,7 +12,7 @@ LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
 
 # Build options
 OPTION(BUILD_STATIC "Build the static library" ON)
-OPTION(BUILD_SHARED "Build the shared library" ON)
+OPTION(BUILD_SHARED "Build the shared library" OFF)
 OPTION(BUILD_EXAMPLES "Build the examples" ON)
 
 IF(NOT MSVC)
@@ -36,6 +36,7 @@ IF(BUILD_SHARED)
 	SET(EXAMPLE_LINK_TARGET curlasio-shared)
 ELSE()
 	SET(EXAMPLE_LINK_TARGET curlasio-static)
+	SET(EXAMPLE_PROJECT_DEFINITIONS -DCURLASIO_STATIC)
 ENDIF()
 
 IF(MSVC)
@@ -49,7 +50,7 @@ IF(MSVC)
 	ADD_DEFINITIONS(-D_WIN32_WINNT=${TARGET_WINDOWS_VERSION})
 	
 	# Disable using __declspec(dllimport) when linking statically
-	OPTION(CURL_IS_STATIC "Set to on if libcurl is a static library" OFF)
+	OPTION(CURL_IS_STATIC "Check if libcurl is a static library" OFF)
 	IF(CURL_IS_STATIC)
 		ADD_DEFINITIONS(-DCURL_STATICLIB)
 	ENDIF()
@@ -57,7 +58,7 @@ ENDIF()
 
 # Find dependencies
 FIND_PACKAGE(CURL REQUIRED)
-FIND_PACKAGE(Boost REQUIRED COMPONENTS system thread)
+FIND_PACKAGE(Boost REQUIRED COMPONENTS chrono date_time system thread)
 
 # Move along
 ADD_SUBDIRECTORY(src)
