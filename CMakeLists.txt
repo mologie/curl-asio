@@ -57,7 +57,7 @@ ENDIF()
 
 # Find dependencies
 FIND_PACKAGE(CURL REQUIRED)
-FIND_PACKAGE(Boost REQUIRED COMPONENTS chrono date_time regex system thread)
+FIND_PACKAGE(Boost REQUIRED COMPONENTS system thread)
 
 # Move along
 ADD_SUBDIRECTORY(src)
