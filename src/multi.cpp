@@ -77,8 +77,9 @@ void multi::socket_cleanup(native::curl_socket_t s)
 
 	if (it != sockets_.end())
 	{
-		monitor_socket(it->second, CURL_POLL_NONE);
-		assign(s, nullptr);
+		socket_info_ptr p = it->second;
+		monitor_socket(p, CURL_POLL_NONE);
+		p->socket.reset();
 		sockets_.erase(it);
 	}
 }
@@ -207,27 +208,19 @@ void multi::start_read_op(socket_info_ptr si)
 
 void multi::handle_socket_read(const boost::system::error_code& err, socket_info_ptr si)
 {
-	si->pending_read_op = false;
-
-	if (!si->monitor_read)
-	{
-		return;
-	}
-
 	if (!err)
 	{
 		socket_action(si->socket->native_handle(), CURL_CSELECT_IN);
-
-		if (process_messages(si->handle))
-		{
+		if (process_messages(si->handle) && si->monitor_read)
 			start_read_op(si);
-		}
 	}
 	else if (err != boost::asio::error::operation_aborted)
 	{
 		socket_action(si->socket->native_handle(), CURL_CSELECT_ERR);
 		process_messages();
 	}
+
+	si->pending_read_op = false;
 }
 
 void multi::start_write_op(socket_info_ptr si)
@@ -238,27 +231,19 @@ void multi::start_write_op(socket_info_ptr si)
 
 void multi::handle_socket_write(const boost::system::error_code& err, socket_info_ptr si)
 {
-	si->pending_write_op = false;
-
-	if (!si->monitor_write)
-	{
-		return;
-	}
-
 	if (!err)
 	{
 		socket_action(si->socket->native_handle(), CURL_CSELECT_OUT);
-
-		if (process_messages(si->handle))
-		{
+		if (process_messages(si->handle) && si->monitor_write)
 			start_write_op(si);
-		}
 	}
 	else if (err != boost::asio::error::operation_aborted)
 	{
 		socket_action(si->socket->native_handle(), CURL_CSELECT_ERR);
 		process_messages();
 	}
+	
+	si->pending_write_op = false;
 }
 
 void multi::handle_timeout(const boost::system::error_code& err)
@@ -280,7 +265,7 @@ multi::socket_info_ptr multi::get_socket_from_native(native::curl_socket_t nativ
 	}
 	else
 	{
-		return 0;
+		return socket_info_ptr();
 	}
 }
 
@@ -290,38 +275,26 @@ int multi::socket(native::CURL* native_easy, native::curl_socket_t s, int what, 
 
 	if (what == CURL_POLL_REMOVE)
 	{
-		// stop listening for events if the socket still exists
-		if (socketp) {
-			socket_info_ptr si = static_cast<socket_info*>(socketp)->shared_from_this();
-			self->monitor_socket(si, 0);
-		}
+		// stop listening for events
+		socket_info_ptr* si = static_cast<socket_info_ptr*>(socketp);
+		self->monitor_socket(*si, CURL_POLL_NONE);
+		delete si;
 	}
 	else if (socketp)
 	{
 		// change direction
-		socket_info_ptr si = static_cast<socket_info*>(socketp)->shared_from_this();
-		si->handle = easy::from_native(native_easy);
-		self->monitor_socket(si, what);
+		socket_info_ptr* si = static_cast<socket_info_ptr*>(socketp);
+		(*si)->handle = easy::from_native(native_easy);
+		self->monitor_socket(*si, what);
 	}
 	else if (native_easy)
 	{
-		// FIXME This lookup is expensive and redundant, but there so far is no way around it.
-		// Prepare a patch for libcurl to allow passing the si pointer back into the user data slot from within the createsocket() callback.
+		// register the socket
 		socket_info_ptr si = self->get_socket_from_native(s);
-
 		if (!si)
-		{
 			throw std::invalid_argument("bad socket");
-		}
-
-		// handle socket ownership changes
-		// FIXME this needs a separate event in libcurl!
 		si->handle = easy::from_native(native_easy);
-
-		// cache the result and have further calls include a non-zero socketp argument
-		self->assign(s, si.get());
-
-		// start listening for events on the freshly created socket
+		self->assign(s, new socket_info_ptr(si));
 		self->monitor_socket(si, what);
 	}
 	else
