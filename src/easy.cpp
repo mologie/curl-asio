@@ -454,6 +454,7 @@ void easy::handle_completion(const boost::system::error_code& err)
 
 void easy::init()
 {
+	initref_ = initialization::ensure_initialization();
 	handle_ = native::curl_easy_init();
 
 	if (!handle_)

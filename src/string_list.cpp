@@ -13,6 +13,7 @@ using namespace curl;
 string_list::string_list():
 	list_(0)
 {
+	initref_ = initialization::ensure_initialization();
 }
 
 string_list::~string_list()

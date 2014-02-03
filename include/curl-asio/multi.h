@@ -15,6 +15,7 @@
 #include <boost/shared_ptr.hpp>
 #include <memory>
 #include <set>
+#include "initialization.h"
 #include "native.h"
 #include "socket_info.h"
 
@@ -76,6 +77,7 @@ namespace curl
 		typedef std::set<easy*> easy_set_type;
 
 		boost::asio::io_service& io_service_;
+		initialization::ptr initref_;
 		native::CURLM* handle_;
 		easy_set_type easy_handles_;
 		boost::asio::deadline_timer timeout_;

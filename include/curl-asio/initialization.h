@@ -8,14 +8,18 @@
 
 #pragma once
 
+#include "config.h"
+#include <boost/shared_ptr.hpp>
+
 namespace curl
 {
-	class global_init_helper
+	class initialization
 	{
 	public:
-		global_init_helper();
-		~global_init_helper();
+		typedef boost::shared_ptr<initialization> ptr;
+		static ptr ensure_initialization();
+		~initialization();
+	protected:
+		initialization();
 	};
-
-	extern global_init_helper global_init_helper_instance;
 }

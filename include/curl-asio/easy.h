@@ -19,6 +19,7 @@
 #include <memory>
 #include <string>
 #include "error_code.h"
+#include "initialization.h"
 
 #define IMPLEMENT_CURL_OPTION(FUNCTION_NAME, OPTION_NAME, OPTION_TYPE) \
 	inline void FUNCTION_NAME(OPTION_TYPE arg) \
@@ -441,6 +442,7 @@ namespace curl
 		static int closesocket(void* clientp, native::curl_socket_t item);
 
 		boost::asio::io_service& io_service_;
+		initialization::ptr initref_;
 		native::CURL* handle_;
 		multi* multi_;
 		bool multi_registered_;

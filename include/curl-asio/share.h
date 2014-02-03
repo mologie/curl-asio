@@ -12,6 +12,7 @@
 #include <boost/enable_shared_from_this.hpp>
 #include <boost/noncopyable.hpp>
 #include <boost/thread/mutex.hpp>
+#include "initialization.h"
 #include "native.h"
 
 namespace curl
@@ -41,6 +42,7 @@ namespace curl
 		static void lock(native::CURL* handle, native::curl_lock_data data, native::curl_lock_access access, void* userptr);
 		static void unlock(native::CURL* handle, native::curl_lock_data data, void* userptr);
 
+		initialization::ptr initref_;
 		native::CURLSH* handle_;
 		boost::mutex mutex_;
 	};

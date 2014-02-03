@@ -12,6 +12,7 @@
 #include <boost/enable_shared_from_this.hpp>
 #include <boost/noncopyable.hpp>
 #include <string>
+#include "initialization.h"
 #include "native.h"
 
 namespace curl
@@ -34,6 +35,7 @@ namespace curl
 		void add_file_content(const std::string& name, const std::string& file_path, const std::string& content_type);
 
 	private:
+		initialization::ptr initref_;
 		native::curl_httppost* post_;
 		native::curl_httppost* last_;
 	};

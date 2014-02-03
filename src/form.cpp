@@ -16,6 +16,7 @@ form::form():
 	post_(NULL),
 	last_(NULL)
 {
+	initref_ = initialization::ensure_initialization();
 }
 
 form::~form()

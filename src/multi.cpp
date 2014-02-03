@@ -18,6 +18,7 @@ multi::multi(boost::asio::io_service& io_service):
 	timeout_(io_service),
 	still_running_(0)
 {
+	initref_ = initialization::ensure_initialization();
 	handle_ = native::curl_multi_init();
 
 	if (!handle_)
