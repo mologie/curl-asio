@@ -10,7 +10,6 @@
 
 #include "config.h"
 #include <boost/system/error_code.hpp>
-#include "initialization.h"
 #include "native.h"
 
 namespace curl
