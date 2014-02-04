@@ -28,13 +28,21 @@ namespace curl
 		inline native::curl_httppost* native_handle() { return post_; };
 
 		void add_content(const std::string& key, const std::string& content);
+		void add_content(const std::string& key, const std::string& content, boost::system::error_code& ec);
 		void add_content(const std::string& key, const std::string& content, const std::string& content_type);
+		void add_content(const std::string& key, const std::string& content, const std::string& content_type, boost::system::error_code& ec);
 		void add_file(const std::string& key, const std::string& file_path);
+		void add_file(const std::string& key, const std::string& file_path, boost::system::error_code& ec);
 		void add_file(const std::string& key, const std::string& file_path, const std::string& content_type);
+		void add_file(const std::string& key, const std::string& file_path, const std::string& content_type, boost::system::error_code& ec);
 		void add_file_using_name(const std::string& key, const std::string& file_path, const std::string& file_name);
+		void add_file_using_name(const std::string& key, const std::string& file_path, const std::string& file_name, boost::system::error_code& ec);
 		void add_file_using_name(const std::string& key, const std::string& file_path, const std::string& file_name, const std::string& content_type);
+		void add_file_using_name(const std::string& key, const std::string& file_path, const std::string& file_name, const std::string& content_type, boost::system::error_code& ec);
 		void add_file_content(const std::string& key, const std::string& file_path);
+		void add_file_content(const std::string& key, const std::string& file_path, boost::system::error_code& ec);
 		void add_file_content(const std::string& key, const std::string& file_path, const std::string& content_type);
+		void add_file_content(const std::string& key, const std::string& file_path, const std::string& content_type, boost::system::error_code& ec);
 
 	private:
 		initialization::ptr initref_;
