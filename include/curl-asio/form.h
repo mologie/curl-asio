@@ -31,6 +31,8 @@ namespace curl
 		void add_content(const std::string& name, const std::string& content, const std::string& content_type);
 		void add_file(const std::string& name, const std::string& file_path);
 		void add_file(const std::string& name, const std::string& file_path, const std::string& content_type);
+		void add_file_using_name(const std::string& name, const std::string& file_path, const std::string& file_name);
+		void add_file_using_name(const std::string& name, const std::string& file_path, const std::string& file_name, const std::string& content_type);
 		void add_file_content(const std::string& name, const std::string& file_path);
 		void add_file_content(const std::string& name, const std::string& file_path, const std::string& content_type);
 

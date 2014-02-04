@@ -73,6 +73,32 @@ void form::add_file(const std::string& name, const std::string& file_path, const
 		native::CURLFORM_CONTENTTYPE, content_type.c_str(),
 		native::CURLFORM_END
 		));
+	boost::asio::detail::throw_error(ec);
+}
+
+void form::add_file_using_name(const std::string& name, const std::string& file_path, const std::string& file_name)
+{
+	boost::system::error_code ec(native::curl_formadd(&post_, &last_,
+		native::CURLFORM_COPYNAME, name.c_str(),
+		native::CURLFORM_NAMELENGTH, name.length(),
+		native::CURLFORM_FILE, file_path.c_str(),
+		native::CURLFORM_FILENAME, file_name.c_str(),
+		native::CURLFORM_END
+		));
+	boost::asio::detail::throw_error(ec);
+}
+
+void form::add_file_using_name(const std::string& name, const std::string& file_path, const std::string& file_name, const std::string& content_type)
+{
+	boost::system::error_code ec(native::curl_formadd(&post_, &last_,
+		native::CURLFORM_COPYNAME, name.c_str(),
+		native::CURLFORM_NAMELENGTH, name.length(),
+		native::CURLFORM_FILE, file_path.c_str(),
+		native::CURLFORM_FILENAME, file_name.c_str(),
+		native::CURLFORM_CONTENTTYPE, content_type.c_str(),
+		native::CURLFORM_END
+		));
+	boost::asio::detail::throw_error(ec);
 }
 
 void form::add_file_content(const std::string& name, const std::string& file_path)
