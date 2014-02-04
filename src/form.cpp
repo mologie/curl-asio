@@ -13,8 +13,8 @@
 using namespace curl;
 
 form::form():
-	post_(NULL),
-	last_(NULL)
+	post_(0),
+	last_(0)
 {
 	initref_ = initialization::ensure_initialization();
 }
@@ -58,7 +58,7 @@ void form::add_file(const std::string& name, const std::string& file_path)
 	boost::system::error_code ec(native::curl_formadd(&post_, &last_,
 		native::CURLFORM_COPYNAME, name.c_str(),
 		native::CURLFORM_NAMELENGTH, name.length(),
-		native::CURLFORM_FILECONTENT, file_path.c_str(),
+		native::CURLFORM_FILE, file_path.c_str(),
 		native::CURLFORM_END
 		));
 	boost::asio::detail::throw_error(ec);
@@ -80,7 +80,7 @@ void form::add_file_content(const std::string& name, const std::string& file_pat
 	boost::system::error_code ec(native::curl_formadd(&post_, &last_,
 		native::CURLFORM_COPYNAME, name.c_str(),
 		native::CURLFORM_NAMELENGTH, name.length(),
-		native::CURLFORM_FILE, file_path.c_str(),
+		native::CURLFORM_FILECONTENT, file_path.c_str(),
 		native::CURLFORM_END
 		));
 	boost::asio::detail::throw_error(ec);
