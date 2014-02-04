@@ -437,12 +437,10 @@ void easy::set_telnet_options(boost::shared_ptr<string_list> telnet_options, boo
 	if (telnet_options_)
 	{
 		ec = boost::system::error_code(native::curl_easy_setopt(handle_, native::CURLOPT_TELNETOPTIONS, telnet_options_->native_handle()));
-		boost::asio::detail::throw_error(ec);
 	}
 	else
 	{
 		ec = boost::system::error_code(native::curl_easy_setopt(handle_, native::CURLOPT_TELNETOPTIONS, NULL));
-		boost::asio::detail::throw_error(ec);
 	}
 }
 
