@@ -79,6 +79,50 @@
 		ec = boost::system::error_code(native::curl_easy_setopt(handle_, OPTION_NAME, str.c_str())); \
 	}
 
+#define IMPLEMENT_CURL_OPTION_GET_STRING(FUNCTION_NAME, OPTION_NAME) \
+	inline std::string FUNCTION_NAME() \
+	{ \
+		char *info = NULL; \
+		boost::system::error_code ec = boost::system::error_code(native::curl_easy_getinfo(handle_, OPTION_NAME, &info)); \
+		boost::asio::detail::throw_error(ec, BOOST_PP_STRINGIZE(FUNCTION_NAME)); \
+		return info; \
+	}
+
+#define IMPLEMENT_CURL_OPTION_GET_DOUBLE(FUNCTION_NAME, OPTION_NAME) \
+	inline double FUNCTION_NAME() \
+	{ \
+		double info; \
+		boost::system::error_code ec = boost::system::error_code(native::curl_easy_getinfo(handle_, OPTION_NAME, &info)); \
+		boost::asio::detail::throw_error(ec, BOOST_PP_STRINGIZE(FUNCTION_NAME)); \
+		return info; \
+	}
+
+#define IMPLEMENT_CURL_OPTION_GET_LONG(FUNCTION_NAME, OPTION_NAME) \
+	inline long FUNCTION_NAME() \
+	{ \
+		long info; \
+		boost::system::error_code ec = boost::system::error_code(native::curl_easy_getinfo(handle_, OPTION_NAME, &info)); \
+		boost::asio::detail::throw_error(ec, BOOST_PP_STRINGIZE(FUNCTION_NAME)); \
+		return info; \
+	}
+
+#define IMPLEMENT_CURL_OPTION_GET_LIST(FUNCTION_NAME, OPTION_NAME) \
+	inline std::vector<std::string> FUNCTION_NAME() \
+	{ \
+		struct native::curl_slist *info; \
+		std::vector<std::string> results; \
+		boost::system::error_code ec = boost::system::error_code(native::curl_easy_getinfo(handle_, OPTION_NAME, &info)); \
+		boost::asio::detail::throw_error(ec, BOOST_PP_STRINGIZE(FUNCTION_NAME)); \
+		struct native::curl_slist *it = info; \
+		while (it) \
+		{ \
+			results.push_back(std::string(it->data)); \
+			it = it->next; \
+		} \
+		native::curl_slist_free_all(info); \
+		return results; \
+	}
+
 namespace curl
 {
 	class form;
@@ -424,6 +468,52 @@ namespace curl
 		void set_telnet_options(boost::shared_ptr<string_list> telnet_options);
 		void set_telnet_options(boost::shared_ptr<string_list> telnet_options, boost::system::error_code& ec);
 
+		// getters
+
+		IMPLEMENT_CURL_OPTION_GET_STRING(get_effective_url, native::CURLINFO_EFFECTIVE_URL);
+		IMPLEMENT_CURL_OPTION_GET_LONG(get_reponse_code, native::CURLINFO_RESPONSE_CODE);
+		IMPLEMENT_CURL_OPTION_GET_LONG(get_http_connectcode, native::CURLINFO_HTTP_CONNECTCODE);
+		IMPLEMENT_CURL_OPTION_GET_LONG(get_filetime, native::CURLINFO_FILETIME);
+		IMPLEMENT_CURL_OPTION_GET_DOUBLE(get_total_time, native::CURLINFO_TOTAL_TIME);
+		IMPLEMENT_CURL_OPTION_GET_DOUBLE(get_namelookup_time, native::CURLINFO_NAMELOOKUP_TIME);
+		IMPLEMENT_CURL_OPTION_GET_DOUBLE(get_connect_time, native::CURLINFO_CONNECT_TIME);
+		IMPLEMENT_CURL_OPTION_GET_DOUBLE(get_appconnect_time, native::CURLINFO_APPCONNECT_TIME);
+		IMPLEMENT_CURL_OPTION_GET_DOUBLE(get_pretransfer_time, native::CURLINFO_PRETRANSFER_TIME);
+		IMPLEMENT_CURL_OPTION_GET_DOUBLE(get_starttransfer_time, native::CURLINFO_STARTTRANSFER_TIME);
+		IMPLEMENT_CURL_OPTION_GET_DOUBLE(get_redirect_time, native::CURLINFO_REDIRECT_TIME);
+		IMPLEMENT_CURL_OPTION_GET_LONG(get_redirect_count, native::CURLINFO_REDIRECT_COUNT);
+		IMPLEMENT_CURL_OPTION_GET_STRING(get_redirect_url, native::CURLINFO_REDIRECT_URL);
+		IMPLEMENT_CURL_OPTION_GET_DOUBLE(get_size_upload, native::CURLINFO_SIZE_UPLOAD);
+		IMPLEMENT_CURL_OPTION_GET_DOUBLE(get_size_download, native::CURLINFO_SIZE_DOWNLOAD);
+		IMPLEMENT_CURL_OPTION_GET_DOUBLE(get_speed_download, native::CURLINFO_SPEED_DOWNLOAD);
+		IMPLEMENT_CURL_OPTION_GET_DOUBLE(get_speed_upload, native::CURLINFO_SPEED_UPLOAD);
+		IMPLEMENT_CURL_OPTION_GET_LONG(get_header_size, native::CURLINFO_HEADER_SIZE);
+		IMPLEMENT_CURL_OPTION_GET_LONG(get_request_size, native::CURLINFO_REQUEST_SIZE);
+		IMPLEMENT_CURL_OPTION_GET_LONG(get_ssl_verifyresult, native::CURLINFO_SSL_VERIFYRESULT);
+		IMPLEMENT_CURL_OPTION_GET_DOUBLE(get_content_length_download, native::CURLINFO_CONTENT_LENGTH_DOWNLOAD);
+		IMPLEMENT_CURL_OPTION_GET_DOUBLE(get_content_length_upload, native::CURLINFO_CONTENT_LENGTH_UPLOAD);
+		IMPLEMENT_CURL_OPTION_GET_STRING(get_content_type, native::CURLINFO_CONTENT_TYPE);
+		IMPLEMENT_CURL_OPTION_GET_LONG(get_httpauth_avail, native::CURLINFO_HTTPAUTH_AVAIL);
+		IMPLEMENT_CURL_OPTION_GET_LONG(get_proxyauth_avail, native::CURLINFO_PROXYAUTH_AVAIL);
+		IMPLEMENT_CURL_OPTION_GET_LONG(get_os_errno, native::CURLINFO_OS_ERRNO);
+		IMPLEMENT_CURL_OPTION_GET_LONG(get_num_connects, native::CURLINFO_NUM_CONNECTS);
+		IMPLEMENT_CURL_OPTION_GET_STRING(get_primary_ip, native::CURLINFO_PRIMARY_IP);
+		IMPLEMENT_CURL_OPTION_GET_LONG(get_primary_port, native::CURLINFO_PRIMARY_PORT);
+		IMPLEMENT_CURL_OPTION_GET_STRING(get_local_ip, native::CURLINFO_LOCAL_IP);
+		IMPLEMENT_CURL_OPTION_GET_LONG(get_local_port, native::CURLINFO_LOCAL_PORT);
+		IMPLEMENT_CURL_OPTION_GET_LONG(get_last_socket, native:: CURLINFO_LASTSOCKET);
+		IMPLEMENT_CURL_OPTION_GET_STRING(get_ftp_entry_path, native::CURLINFO_FTP_ENTRY_PATH);
+		IMPLEMENT_CURL_OPTION_GET_LONG(get_condition_unmet, native:: CURLINFO_CONDITION_UNMET);
+		IMPLEMENT_CURL_OPTION_GET_STRING(get_rtsp_session_id, native::CURLINFO_RTSP_SESSION_ID);
+		IMPLEMENT_CURL_OPTION_GET_LONG(get_rtsp_client_cseq, native::CURLINFO_RTSP_CLIENT_CSEQ);
+		IMPLEMENT_CURL_OPTION_GET_LONG(get_rtsp_server_cseq, native::CURLINFO_RTSP_SERVER_CSEQ);
+		IMPLEMENT_CURL_OPTION_GET_LONG(get_rtsp_cseq_recv, native::CURLINFO_RTSP_CSEQ_RECV);
+		IMPLEMENT_CURL_OPTION_GET_LIST(get_ssl_engines, native::CURLINFO_SSL_ENGINES);
+		IMPLEMENT_CURL_OPTION_GET_LIST(get_cookielist, native::CURLINFO_COOKIELIST);
+		// CURLINFO_PRIVATE
+		// CURLINFO_CERTINFO
+		// CURLINFO_TLS_SESSION
+
 		inline bool operator<(const easy& other) const
 		{
 			return (this < &other);
@@ -465,3 +555,7 @@ namespace curl
 #undef IMPLEMENT_CURL_OPTION_BOOLEAN
 #undef IMPLEMENT_CURL_OPTION_ENUM
 #undef IMPLEMENT_CURL_OPTION_STRING
+#undef IMPLEMENT_CURL_OPTION_GET_STRING
+#undef IMPLEMENT_CURL_OPTION_GET_DOUBLE
+#undef IMPLEMENT_CURL_OPTION_GET_LONG
+#undef IMPLEMENT_CURL_OPTION_GET_LIST
