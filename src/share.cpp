@@ -3,7 +3,7 @@
 	Copyright (c) 2013 Oliver Kuckertz <oliver.kuckertz@mologie.de>
 	See COPYING for license information.
 
-	Constructs libcurl string lists
+	C++ wrapper for libcurl's share interface
 */
 
 #include <boost/asio.hpp>
