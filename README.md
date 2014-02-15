@@ -63,6 +63,15 @@ int main(int argc, char* argv[])
 
 More examples, including one for curl-asio's [asynchronous interface](https://github.com/mologie/curl-asio/wiki/Asynchronous-interface), can be found in the [wiki](https://github.com/mologie/curl-asio/wiki) and the `examples` directory.
 
+Todo
+----
+
+* Testing suite based on libcurl's tests
+* API documentation, design documentation, more examples
+* Support for transport schemes using UDP and incoming TCP sockets (active FTP)
+* File upload streams
+* string_list iterators
+
 License
 -------
 Curl-asio is licensed under the same MIT/X derivate license used by libcurl.
