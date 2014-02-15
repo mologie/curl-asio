@@ -59,6 +59,11 @@ void easy::perform()
 
 void easy::perform(boost::system::error_code& ec)
 {
+	if (multi_)
+	{
+		throw std::runtime_error("attempt to perform synchronous operation while being attached to a multi object");
+	}
+
 	ec = boost::system::error_code(native::curl_easy_perform(handle_));
 }
 
