@@ -153,6 +153,10 @@ namespace curl
 		void set_sink(boost::shared_ptr<std::ostream> sink);
 		void set_sink(boost::shared_ptr<std::ostream> sink, boost::system::error_code& ec);
 
+		typedef boost::function<bool(native::curl_off_t dltotal, native::curl_off_t dlnow, native::curl_off_t ultotal, native::curl_off_t ulnow)> progress_callback_t;
+		void unset_progress_callback();
+		void set_progress_callback(progress_callback_t progress_callback);
+
 		// behavior options
 
 		IMPLEMENT_CURL_OPTION_BOOLEAN(set_verbose, native::CURLOPT_VERBOSE);
@@ -187,6 +191,11 @@ namespace curl
 		typedef int (*progress_function_t)(void* clientp, double dltotal, double dlnow, double ultotal, double ulnow);
 		IMPLEMENT_CURL_OPTION(set_progress_function, native::CURLOPT_PROGRESSFUNCTION, progress_function_t);
 		IMPLEMENT_CURL_OPTION(set_progress_data, native::CURLOPT_PROGRESSDATA, void*);
+#if LIBCURL_VERSION_NUM >= 0x072000
+		typedef int (*xferinfo_function_t)(void* clientp, native::curl_off_t dltotal, native::curl_off_t dlnow, native::curl_off_t ultotal, native::curl_off_t ulnow);
+		IMPLEMENT_CURL_OPTION(set_xferinfo_function, native::CURLOPT_XFERINFOFUNCTION, xferinfo_function_t);
+		IMPLEMENT_CURL_OPTION(set_xferinfo_data, native::CURLOPT_XFERINFODATA, void*);
+#endif
 		typedef size_t (*header_function_t)(void* ptr, size_t size, size_t nmemb, void* userdata);
 		IMPLEMENT_CURL_OPTION(set_header_function, native::CURLOPT_HEADERFUNCTION, header_function_t);
 		IMPLEMENT_CURL_OPTION(set_header_data, native::CURLOPT_HEADERDATA, void*);
@@ -528,6 +537,11 @@ namespace curl
 		static size_t write_function(char* ptr, size_t size, size_t nmemb, void* userdata);
 		static size_t read_function(void* ptr, size_t size, size_t nmemb, void* userdata);
 		static int seek_function(void* instream, native::curl_off_t offset, int origin);
+#if LIBCURL_VERSION_NUM < 0x072000
+		static int progress_function(void* clientp, double dltotal, double dlnow, double ultotal, double ulnow);
+#else
+		static int xferinfo_function(void* clientp, native::curl_off_t dltotal, native::curl_off_t dlnow, native::curl_off_t ultotal, native::curl_off_t ulnow);
+#endif
 		static native::curl_socket_t opensocket(void* clientp, native::curlsocktype purpose, struct native::curl_sockaddr* address);
 		static int closesocket(void* clientp, native::curl_socket_t item);
 
@@ -548,6 +562,7 @@ namespace curl
 		boost::shared_ptr<string_list> resolved_hosts_;
 		boost::shared_ptr<share> share_;
 		boost::shared_ptr<string_list> telnet_options_;
+		progress_callback_t progress_callback_;
 	};
 }
 

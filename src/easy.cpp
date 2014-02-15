@@ -121,6 +121,31 @@ void easy::set_sink(boost::shared_ptr<std::ostream> sink)
 	boost::asio::detail::throw_error(ec, "set_sink");
 }
 
+void easy::unset_progress_callback()
+{
+	set_no_progress(true);
+#if LIBCURL_VERSION_NUM < 0x072000
+	set_progress_function(0);
+	set_progress_data(0);
+#else
+	set_xferinfo_function(0);
+	set_xferinfo_data(0);
+#endif
+}
+
+void easy::set_progress_callback(progress_callback_t progress_callback)
+{
+	progress_callback_ = progress_callback;
+	set_no_progress(false);
+#if LIBCURL_VERSION_NUM < 0x072000
+	set_progress_function(&easy::progress_function);
+	set_progress_data(this);
+#else
+	set_xferinfo_function(&easy::xferinfo_function);
+	set_xferinfo_data(this);
+#endif
+}
+
 void easy::set_sink(boost::shared_ptr<std::ostream> sink, boost::system::error_code& ec)
 {
 	sink_ = sink;
@@ -574,6 +599,25 @@ int easy::seek_function(void* instream, native::curl_off_t offset, int origin)
 		return CURL_SEEKFUNC_OK;
 	}
 }
+
+#if LIBCURL_VERSION_NUM < 0x072000
+int easy::progress_function(void* clientp, double dltotal, double dlnow, double ultotal, double ulnow)
+{
+	easy* self = static_cast<easy*>(clientp);
+	return self->progress_callback_(
+		static_cast<native::curl_off_t>(dltotal),
+		static_cast<native::curl_off_t>(dlnow),
+		static_cast<native::curl_off_t>(ultotal),
+		static_cast<native::curl_off_t>(ulnow)
+		) ? 0 : 1;
+}
+#else
+int easy::xferinfo_function(void* clientp, native::curl_off_t dltotal, native::curl_off_t dlnow, native::curl_off_t ultotal, native::curl_off_t ulnow)
+{
+	easy* self = static_cast<easy*>(clientp);
+	return self->progress_callback_(dltotal, dlnow, ultotal, ulnow) ? 0 : 1;
+}
+#endif
 
 native::curl_socket_t easy::opensocket(void* clientp, native::curlsocktype purpose, struct native::curl_sockaddr* address)
 {
