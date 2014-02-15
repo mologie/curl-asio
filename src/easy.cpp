@@ -76,15 +76,14 @@ void easy::async_perform(handler_type handler)
 	set_opensocket_function(&easy::opensocket);
 	set_opensocket_data(this);
 
-	// This one is tricky: Although sockets are opened in the context of an easy object,
-	// they can outlive the easy objects and be transferred into a multi object's connection pool.
-	// Why there is no connection pool interface in the multi interface to plug into to begin with is still a mystery to me.
-	// Either way, the close events have to be tracked by the multi object as sockets are usually closed when curl_multi_cleanup is invoked.
+	// This one is tricky: Although sockets are opened in the context of an easy object, they can outlive the easy objects and be transferred into a multi object's connection pool. Why there is no connection pool interface in the multi interface to plug into to begin with is still a mystery to me. Either way, the close events have to be tracked by the multi object as sockets are usually closed when curl_multi_cleanup is invoked.
 	set_closesocket_function(&easy::closesocket);
 	set_closesocket_data(multi_);
 
 	handler_ = handler;
 	multi_registered_ = true;
+
+	// Registering the easy handle with the multi handle might invoke a set of callbacks right away which cause the completion event to fire from within this function.
 	multi_->add(this);
 }
 
