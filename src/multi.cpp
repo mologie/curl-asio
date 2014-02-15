@@ -143,6 +143,12 @@ void multi::monitor_socket(socket_info_ptr si, int action)
 	si->monitor_read = !!(action & CURL_POLL_IN);
 	si->monitor_write = !!(action & CURL_POLL_OUT);
 
+	if (!si->socket)
+	{
+		// If libcurl already requested destruction of the socket, then no further action is required.
+		return;
+	}
+
 	if (si->monitor_read && !si->pending_read_op)
 	{
 		start_read_op(si);
@@ -212,16 +218,22 @@ void multi::handle_socket_read(const boost::system::error_code& err, socket_info
 	if (!err)
 	{
 		socket_action(si->socket->native_handle(), CURL_CSELECT_IN);
+
 		if (process_messages(si->handle) && si->monitor_read)
 			start_read_op(si);
+		else
+			si->pending_read_op = false;
 	}
-	else if (err != boost::asio::error::operation_aborted)
+	else
 	{
-		socket_action(si->socket->native_handle(), CURL_CSELECT_ERR);
-		process_messages();
-	}
+		if (err != boost::asio::error::operation_aborted)
+		{
+			socket_action(si->socket->native_handle(), CURL_CSELECT_ERR);
+			process_messages();			
+		}
 
-	si->pending_read_op = false;
+		si->pending_read_op = false;
+	}
 }
 
 void multi::start_write_op(socket_info_ptr si)
@@ -235,16 +247,22 @@ void multi::handle_socket_write(const boost::system::error_code& err, socket_inf
 	if (!err)
 	{
 		socket_action(si->socket->native_handle(), CURL_CSELECT_OUT);
+
 		if (process_messages(si->handle) && si->monitor_write)
 			start_write_op(si);
+		else
+			si->pending_write_op = false;
 	}
-	else if (err != boost::asio::error::operation_aborted)
+	else
 	{
-		socket_action(si->socket->native_handle(), CURL_CSELECT_ERR);
-		process_messages();
+		if (err != boost::asio::error::operation_aborted)
+		{
+			socket_action(si->socket->native_handle(), CURL_CSELECT_ERR);
+			process_messages();
+		}
+
+		si->pending_write_op = false;
 	}
-	
-	si->pending_write_op = false;
 }
 
 void multi::handle_timeout(const boost::system::error_code& err)
