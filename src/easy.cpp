@@ -84,8 +84,8 @@ void easy::async_perform(handler_type handler)
 	set_closesocket_data(multi_);
 
 	handler_ = handler;
-	multi_->add(this);
 	multi_registered_ = true;
+	multi_->add(this);
 }
 
 void easy::cancel()
@@ -94,7 +94,6 @@ void easy::cancel()
 	{
 		handle_completion(boost::system::error_code(boost::asio::error::operation_aborted));
 		multi_->remove(this);
-		multi_registered_ = false;
 	}
 }
 
@@ -472,7 +471,7 @@ void easy::set_telnet_options(boost::shared_ptr<string_list> telnet_options, boo
 void easy::handle_completion(const boost::system::error_code& err)
 {
 	multi_registered_ = false;
-	handler_(err);
+	io_service_.post(boost::bind(handler_, err));
 }
 
 void easy::init()

@@ -171,11 +171,10 @@ void multi::monitor_socket(socket_info_ptr si, int action)
 #endif
 }
 
-bool multi::process_messages(easy* context)
+void multi::process_messages()
 {
 	native::CURLMsg* msg;
 	int msgs_left;
-	bool transfer_alive = true;
 
 	while ((msg = native::curl_multi_info_read(handle_, &msgs_left)))
 	{
@@ -191,15 +190,8 @@ bool multi::process_messages(easy* context)
 
 			remove(easy_handle);
 			easy_handle->handle_completion(ec);
-
-			if (easy_handle == context)
-			{
-				transfer_alive = false;
-			}
 		}
 	}
-
-	return transfer_alive;
 }
 
 bool multi::still_running()
@@ -218,8 +210,9 @@ void multi::handle_socket_read(const boost::system::error_code& err, socket_info
 	if (!err)
 	{
 		socket_action(si->socket->native_handle(), CURL_CSELECT_IN);
+		process_messages();
 
-		if (process_messages(si->handle) && si->monitor_read)
+		if (si->monitor_read)
 			start_read_op(si);
 		else
 			si->pending_read_op = false;
@@ -247,8 +240,9 @@ void multi::handle_socket_write(const boost::system::error_code& err, socket_inf
 	if (!err)
 	{
 		socket_action(si->socket->native_handle(), CURL_CSELECT_OUT);
+		process_messages();
 
-		if (process_messages(si->handle) && si->monitor_write)
+		if (si->monitor_write)
 			start_write_op(si);
 		else
 			si->pending_write_op = false;

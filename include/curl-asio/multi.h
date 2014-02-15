@@ -57,7 +57,7 @@ namespace curl
 		void set_timer_data(void* timer_data);
 
 		void monitor_socket(socket_info_ptr si, int action);
-		bool process_messages(easy* context = 0);
+		void process_messages();
 		bool still_running();
 
 		void start_read_op(socket_info_ptr si);
