@@ -207,6 +207,12 @@ void multi::start_read_op(socket_info_ptr si)
 
 void multi::handle_socket_read(const boost::system::error_code& err, socket_info_ptr si)
 {
+    if (!si->socket)
+    {
+        si->pending_read_op = false;
+        return;
+    }
+
 	if (!err)
 	{
 		socket_action(si->socket->native_handle(), CURL_CSELECT_IN);
@@ -237,6 +243,12 @@ void multi::start_write_op(socket_info_ptr si)
 
 void multi::handle_socket_write(const boost::system::error_code& err, socket_info_ptr si)
 {
+    if (!si->socket)
+    {
+        si->pending_write_op = false;
+        return;
+    }
+
 	if (!err)
 	{
 		socket_action(si->socket->native_handle(), CURL_CSELECT_OUT);
