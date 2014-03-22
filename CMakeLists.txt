@@ -67,4 +67,17 @@ IF(BUILD_EXAMPLES)
 ENDIF()
 
 # Install FindCURL.cmake and FindCURLASIO.cmake
-INSTALL(DIRECTORY cmake/ DESTINATION cmake)
+OPTION(INSTALL_CMAKE_MODULES "Install CMake module files for libcurl and curl-asio" ON)
+IF(INSTALL_CMAKE_MODULES)
+	IF(APPLE)
+		IF((IS_SYMLINK "${CMAKE_INSTALL_PREFIX}/share/cmake") OR (IS_SYMLINK "${CMAKE_INSTALL_PREFIX}/share/cmake/Modules"))
+			MESSAGE(FATAL_ERROR "The destination path `${CMAKE_INSTALL_PREFIX}/share/cmake' is a symlink. "
+				"If you are using Homebrew, run the following set of commands prior to installing this library:\n"
+				"    brew unlink cmake\n"
+				"    mkdir -p '${CMAKE_INSTALL_PREFIX}/share/cmake/Modules'\n"
+				"    brew link cmake\n"
+				"Without these changes, updating CMake through Homebrew would break the installation. Alternatively, choose a different CMAKE_INSTALL_PREFIX.")
+		ENDIF()
+	ENDIF()
+	INSTALL(DIRECTORY cmake/ DESTINATION share/cmake/Modules)
+ENDIF()
