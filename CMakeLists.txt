@@ -57,7 +57,7 @@ IF(MSVC)
 ENDIF()
 
 # Find dependencies
-FIND_PACKAGE(CURL REQUIRED)
+FIND_PACKAGE(CURLASIO-CURL REQUIRED)
 FIND_PACKAGE(Boost REQUIRED COMPONENTS chrono date_time system thread)
 
 # Move along
@@ -66,7 +66,7 @@ IF(BUILD_EXAMPLES)
 	ADD_SUBDIRECTORY(examples)
 ENDIF()
 
-# Install FindCURL.cmake and FindCURLASIO.cmake
+# Install CMake modules for curl-asio and libcurl
 OPTION(INSTALL_CMAKE_MODULES "Install CMake module files for libcurl and curl-asio" ON)
 IF(INSTALL_CMAKE_MODULES)
 	IF(APPLE)
