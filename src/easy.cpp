@@ -474,6 +474,11 @@ void easy::set_telnet_options(boost::shared_ptr<string_list> telnet_options, boo
 
 void easy::handle_completion(const boost::system::error_code& err)
 {
+	if (sink_)
+	{
+		sink_->flush();
+	}
+
 	multi_registered_ = false;
 	io_service_.post(boost::bind(handler_, err));
 }
