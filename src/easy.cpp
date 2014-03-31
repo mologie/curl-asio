@@ -65,6 +65,11 @@ void easy::perform(boost::system::error_code& ec)
 	}
 
 	ec = boost::system::error_code(native::curl_easy_perform(handle_));
+
+	if (sink_)
+	{
+		sink_->flush();
+	}
 }
 
 void easy::async_perform(handler_type handler)
