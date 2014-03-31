@@ -124,6 +124,13 @@ void easy::set_sink(boost::shared_ptr<std::ostream> sink)
 	boost::asio::detail::throw_error(ec, "set_sink");
 }
 
+void easy::set_sink(boost::shared_ptr<std::ostream> sink, boost::system::error_code& ec)
+{
+	sink_ = sink;
+	set_write_function(&easy::write_function);
+	if (!ec) set_write_data(this);
+}
+
 void easy::unset_progress_callback()
 {
 	set_no_progress(true);
@@ -147,13 +154,6 @@ void easy::set_progress_callback(progress_callback_t progress_callback)
 	set_xferinfo_function(&easy::xferinfo_function);
 	set_xferinfo_data(this);
 #endif
-}
-
-void easy::set_sink(boost::shared_ptr<std::ostream> sink, boost::system::error_code& ec)
-{
-	sink_ = sink;
-	set_write_function(&easy::write_function);
-	if (!ec) set_write_data(this);
 }
 
 void easy::set_post_fields(const std::string& post_fields)
