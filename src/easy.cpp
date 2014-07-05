@@ -655,9 +655,11 @@ native::curl_socket_t easy::opensocket(void* clientp, native::curlsocktype purpo
 		}
 		break;
 
+#ifdef CURLSOCKTYPE_ACCEPT
 	case native::CURLSOCKTYPE_ACCEPT:
 		// TODO implement - is this used for active FTP?
 		return CURL_SOCKET_BAD;
+#endif
 
 	default:
 		// unknown or invalid purpose
