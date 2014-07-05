@@ -1,7 +1,7 @@
 curl-asio
 =========
 
-**Warning: Here be dragons. This library is still being developed and has not been extensively tested.**
+**Here be dragons. Although this library generally works quite well, it is still being developed and has not been extensively tested.** You will probably be fine, but don't look at me when things catch fire.
 
 This library makes use of libcurl's multi interface in order to enable easy integration into Boost.Asio applications.
 
