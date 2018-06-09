@@ -1,3 +1,5 @@
+Note (2018): This library is currently unmaintained and a rewrite for C++14/17, possibly as simple header-only library, is planned.
+
 curl-asio
 =========
 
